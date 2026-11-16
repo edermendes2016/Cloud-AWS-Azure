@@ -263,6 +263,11 @@
         "Run on the plan inside the lab container"
       ],
       [
+        "Azure modules: VNet with NSGs and NAT gateway, Monitor alerts",
+        "plan",
+        "terraform validate + Checkov only: no account, never planned or applied"
+      ],
+      [
         "tflint",
         "local",
         "Bundled terraform ruleset, verified in the CI run"
@@ -331,6 +336,49 @@
       "After a destroy the emulator keeps the NAT gateway's network interface in a VPC that no longer exists. orphan-check ignores interfaces without a VPC and documents why.",
       "The dependency lock file is not committed: hashes for every platform cannot be generated offline. The provider version is pinned exactly instead.",
       "Cost: the lab costs nothing. By the reference list prices, the baseline would cost about 55 USD/month on AWS, and the NAT gateway is the largest line."
-    ]
+    ],
+    "equivalence": {
+      "title": "AWS and Azure side by side",
+      "aws": "AWS (applied in emulator)",
+      "azure": "Azure (validate + Checkov only)",
+      "note": "Difference to remember",
+      "rows": [
+        [
+          "VPC",
+          "Virtual Network (VNet)",
+          "A VNet lives in a resource group; the module receives one instead of creating it."
+        ],
+        [
+          "One subnet per AZ and tier",
+          "One regional subnet per tier",
+          "Azure subnets span availability zones, so there is no per-AZ subnet."
+        ],
+        [
+          "Route table entry to a NAT gateway",
+          "NAT gateway associated with the subnet",
+          "No route is written. Azure also gives default outbound access unless it is turned off, which the module does for private tiers."
+        ],
+        [
+          "Security group on the resource",
+          "Network Security Group on the subnet",
+          "NSG rules have priorities and explicit deny; security groups only allow."
+        ],
+        [
+          "CloudWatch alarm + SNS topic",
+          "Monitor metric alert + action group",
+          "Same idea: metric, threshold, window, notification target."
+        ],
+        [
+          "CloudWatch log group",
+          "Log Analytics workspace",
+          "Retention is set on the workspace; queries use KQL."
+        ],
+        [
+          "Default tags on the provider",
+          "Tags passed to every resource",
+          "azurerm has no default_tags, so the tags map is a module input."
+        ]
+      ]
+    }
   }
 }
