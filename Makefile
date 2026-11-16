@@ -6,7 +6,7 @@ SHELL := /bin/bash
 .SHELLFLAGS := -euo pipefail -c
 .DEFAULT_GOAL := help
 
-PIPELINE := fmt validate lint secrets plan scan policy cost apply drift destroy orphan-check unlock ci test bootstrap init
+PIPELINE := fmt validate lint secrets plan scan scan-azure policy cost apply drift destroy orphan-check unlock ci test bootstrap init
 
 ifeq ($(IN_LAB),)
 
@@ -64,6 +64,8 @@ validate: ## Syntax and type gate
 	terraform -chdir=bootstrap init -input=false -backend=false >/dev/null
 	terraform -chdir=bootstrap validate
 	$(TF) validate
+	terraform -chdir=envs/azure-example init -input=false -backend=false >/dev/null
+	terraform -chdir=envs/azure-example validate
 
 lint: ## tflint (bundled terraform ruleset)
 	tflint --recursive --config=$(CURDIR)/.tflint.hcl
@@ -79,6 +81,10 @@ plan: ## Plan and export it as JSON for the gates below
 scan: ## Checkov on the resolved plan (built-in checks + policies/checkov)
 	checkov -f $(WORK)/plan.json --framework terraform_plan --config-file .checkov.yaml \
 	  --repo-root-for-plan-enrichment . --external-checks-dir policies/checkov --quiet --compact --skip-download
+
+scan-azure: ## Checkov on the Azure code (static: there is no Azure account to plan against)
+	checkov -d modules/azure -d envs/azure-example --framework terraform --config-file .checkov.yaml \
+	  --quiet --compact --skip-download
 
 policy: ## Route and tag rules on the plan
 	python scripts/plan_policy.py $(WORK)/plan.json
@@ -105,7 +111,7 @@ orphan-check: ## List anything left outside the Terraform state
 unlock: ## Release a stale state lock: make unlock ID=<lock id>
 	$(TF) force-unlock -force $(ID)
 
-ci: fmt validate lint secrets plan scan policy cost ## Every gate, in pipeline order
+ci: fmt validate lint secrets plan scan scan-azure policy cost ## Every gate, in pipeline order
 
 test: ## Unit + integration tests
 	python -m pytest -q tests

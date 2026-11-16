@@ -263,6 +263,11 @@
         "Rodam sobre o plan dentro do container do laboratório"
       ],
       [
+        "Módulos Azure: VNet com NSGs e NAT gateway, alertas do Monitor",
+        "plan",
+        "Só terraform validate + Checkov: sem conta, nunca planejado nem aplicado"
+      ],
+      [
         "tflint",
         "local",
         "Ruleset terraform embutido, verificado na execução do CI"
@@ -331,6 +336,49 @@
       "Depois de um destroy o emulador mantém a interface de rede do NAT gateway em uma VPC que não existe mais. O orphan-check ignora interfaces sem VPC e documenta o motivo.",
       "O arquivo de lock de dependências não é commitado: os hashes de todas as plataformas não podem ser gerados offline. Em troca, a versão do provider é fixada exatamente.",
       "Custo: o laboratório não custa nada. Pelos preços de tabela de referência, a base custaria cerca de 55 USD/mês na AWS, e o NAT gateway é a maior linha."
-    ]
+    ],
+    "equivalence": {
+      "title": "AWS e Azure lado a lado",
+      "aws": "AWS (aplicado no emulador)",
+      "azure": "Azure (só validate + Checkov)",
+      "note": "Diferença para lembrar",
+      "rows": [
+        [
+          "VPC",
+          "Virtual Network (VNet)",
+          "A VNet vive em um resource group; o módulo recebe um em vez de criar."
+        ],
+        [
+          "Uma sub-rede por AZ e camada",
+          "Uma sub-rede regional por camada",
+          "Sub-redes do Azure atravessam as zonas de disponibilidade, então não há sub-rede por AZ."
+        ],
+        [
+          "Entrada de rota para o NAT gateway",
+          "NAT gateway associado à sub-rede",
+          "Nenhuma rota é escrita. O Azure também dá saída padrão para a internet se isso não for desligado, e o módulo desliga nas camadas privadas."
+        ],
+        [
+          "Security group no recurso",
+          "Network Security Group na sub-rede",
+          "Regras de NSG têm prioridade e deny explícito; security groups só permitem."
+        ],
+        [
+          "Alarme do CloudWatch + tópico SNS",
+          "Alerta de métrica do Monitor + action group",
+          "Mesma ideia: métrica, limite, janela, destino da notificação."
+        ],
+        [
+          "Log group do CloudWatch",
+          "Workspace do Log Analytics",
+          "A retenção fica no workspace; as consultas usam KQL."
+        ],
+        [
+          "Default tags no provider",
+          "Tags passadas a cada recurso",
+          "O azurerm não tem default_tags, então o mapa de tags é entrada do módulo."
+        ]
+      ]
+    }
   }
 }

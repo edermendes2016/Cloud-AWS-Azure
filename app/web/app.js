@@ -254,6 +254,9 @@ async function renderDocs() {
     <div class="panel"><h2>${esc(t("ui.docs_validation"))}</h2><div class="scroll"><table>
       <thead><tr><th>${esc(t("ui.docs_item"))}</th><th>${esc(t("ui.docs_level"))}</th><th>${esc(t("ui.docs_note"))}</th></tr></thead>
       <tbody>${d.validation.map(([item, lvl, note]) => `<tr><td>${esc(item)}</td><td>${pill(level[lvl], t("ui.levels." + lvl))}</td><td>${esc(note)}</td></tr>`).join("")}</tbody></table></div></div>
+    <div class="panel"><h2>${esc(d.equivalence.title)}</h2><div class="scroll"><table>
+      <thead><tr><th>${esc(d.equivalence.aws)}</th><th>${esc(d.equivalence.azure)}</th><th>${esc(d.equivalence.note)}</th></tr></thead>
+      <tbody>${d.equivalence.rows.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>
     <div class="panel"><h2>${esc(t("ui.docs_adrs"))}</h2><div class="scroll"><table>
       <thead><tr><th>${esc(t("ui.decision"))}</th><th>${esc(t("ui.why"))}</th></tr></thead>
       <tbody>${d.adrs.map(([title, why]) => `<tr><th scope="row">${esc(title)}</th><td>${esc(why)}</td></tr>`).join("")}</tbody></table></div></div>

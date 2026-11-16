@@ -7,23 +7,27 @@ FROM python:3.13-slim
 
 ARG TERRAFORM_VERSION=1.17.2
 ARG AWS_PROVIDER_VERSION=6.20.0
+ARG AZURERM_PROVIDER_VERSION=4.81.0
 ARG TARGETARCH
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl make unzip \
     && rm -rf /var/lib/apt/lists/*
 
-# Terraform and the provider come from releases.hashicorp.com with checksum verification.
-# The provider goes to a filesystem mirror, so `terraform init` never calls the registry.
+# Terraform and the providers come from releases.hashicorp.com with checksum verification.
+# Providers go to a filesystem mirror, so `terraform init` never calls the registry.
 RUN set -eu; cd /tmp; base=https://releases.hashicorp.com; \
-    mirror=/usr/local/share/terraform/plugins/registry.terraform.io/hashicorp/aws; mkdir -p "$mirror"; \
-    for item in "terraform ${TERRAFORM_VERSION}" "terraform-provider-aws ${AWS_PROVIDER_VERSION}"; do \
+    mirror=/usr/local/share/terraform/plugins/registry.terraform.io/hashicorp; \
+    for item in "terraform ${TERRAFORM_VERSION}" "terraform-provider-aws ${AWS_PROVIDER_VERSION}" \
+                "terraform-provider-azurerm ${AZURERM_PROVIDER_VERSION}"; do \
       set -- $item; zip="$1_$2_linux_${TARGETARCH}.zip"; \
       curl -fsSLO "$base/$1/$2/$zip"; \
       curl -fsSL "$base/$1/$2/$1_$2_SHA256SUMS" | grep " $zip\$" | sha256sum -c -; \
-    done; \
-    unzip -q "terraform_${TERRAFORM_VERSION}_linux_${TARGETARCH}.zip" terraform -d /usr/local/bin; \
-    mv terraform-provider-aws_*.zip "$mirror/"; rm -f /tmp/*.zip
+      case "$1" in \
+        terraform) unzip -q "$zip" terraform -d /usr/local/bin; rm "$zip" ;; \
+        *) mkdir -p "$mirror/${1#terraform-provider-}"; mv "$zip" "$mirror/${1#terraform-provider-}/" ;; \
+      esac; \
+    done
 
 COPY --from=tflint /usr/local/bin/tflint /usr/local/bin/tflint
 COPY --from=gitleaks /usr/bin/gitleaks /usr/local/bin/gitleaks
