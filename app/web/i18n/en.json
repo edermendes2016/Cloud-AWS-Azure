@@ -8,7 +8,7 @@
       "compare": "Before × after",
       "cards": "Scenario cards",
       "finops": "FinOps",
-      "docs": "Docs"
+      "docs": "Wiki"
     },
     "status": {
       "setup": "Setting up",
@@ -117,7 +117,6 @@
     "tags_ok": "Every taggable resource carries: {tags}.",
     "orphans_title": "Resources outside the state",
     "orphans_ok": "None. Everything in the emulator is in the Terraform state.",
-    "docs_validation": "What was validated, and how",
     "docs_item": "Item",
     "docs_level": "Level",
     "docs_note": "Note",
@@ -128,11 +127,9 @@
       "not_run": "Not run yet",
       "real": "Real account"
     },
-    "docs_adrs": "Decisions (short ADRs)",
     "decision": "Decision",
     "why": "Why",
-    "docs_lessons": "Lessons learned and costs",
-    "docs_quickstart": "Quick start"
+    "wiki_topics": "Topics"
   },
   "scenarios": {
     "missing-route": {
@@ -221,11 +218,6 @@
     }
   },
   "docs": {
-    "quickstart": [
-      "git clone <this repository> && cd <folder>",
-      "make up",
-      "open http://localhost:8080"
-    ],
     "validation": [
       [
         "VPC, subnets, routes, NAT gateway, flow logs",
@@ -431,6 +423,587 @@
           "8. Rollback",
           "Decide before the window what triggers a rollback and until when it is possible. Keep the old database read-only and untouched until the decision point passes.",
           "Either the sign-off is given or DNS points back, with no data written on only one side."
+        ]
+      ]
+    },
+    "topics": {
+      "overview": "Overview",
+      "architecture": "Architecture",
+      "modules": "Terraform modules",
+      "state": "Remote state",
+      "pipeline": "Pipeline and gates",
+      "scenarios": "Failure scenarios",
+      "finops": "FinOps",
+      "azure": "Azure equivalent",
+      "kubernetes": "Kubernetes",
+      "migration": "Migration runbook",
+      "validation": "Validation levels",
+      "decisions": "Decisions",
+      "lessons": "Lessons learned",
+      "troubleshooting": "Troubleshooting"
+    },
+    "wiki": {
+      "overview": [
+        [
+          "p",
+          "A Terraform lab for AWS with the controls a production pipeline needs: quality and security gates before the plan is approved, a cost budget, drift and orphan detection, and seven failure scenarios that prove each control works. Everything runs on a local AWS emulator, so there is no cloud account and no cost."
+        ],
+        [
+          "code",
+          "git clone <this repository> && cd <folder>\nmake up        # builds the image, starts the emulator, opens http://localhost:8080\nmake ci        # every gate, in pipeline order\nmake test      # apply, inject the seven failures, destroy, orphan-check\nmake down      # stop and wipe everything"
+        ],
+        [
+          "table",
+          [
+            "Requirement",
+            "Note"
+          ],
+          [
+            [
+              "Docker with Compose v2",
+              "The only thing installed on the machine."
+            ],
+            [
+              "make",
+              "Optional. Without it: docker compose up -d --build --wait"
+            ],
+            [
+              "Internet on the first build",
+              "Downloads the base image, Terraform, the providers and the gate tools. Nothing is downloaded at runtime."
+            ]
+          ]
+        ],
+        [
+          "table",
+          [
+            "Tab",
+            "What it shows"
+          ],
+          [
+            [
+              "Pipeline",
+              "Runs the gates, waits for a manual approval, applies. Each stage has its status, duration and log."
+            ],
+            [
+              "Network map",
+              "The applied topology, read from the Terraform state, with the live security group rules."
+            ],
+            [
+              "Failure lab",
+              "Inject each fault and watch the control that stops it."
+            ],
+            [
+              "Before × after",
+              "Stage durations measured in this lab."
+            ],
+            [
+              "Scenario cards",
+              "Each scenario in six fixed fields."
+            ],
+            [
+              "FinOps",
+              "Estimated monthly cost, tag policy and resources outside the state."
+            ],
+            [
+              "Wiki",
+              "This documentation."
+            ]
+          ]
+        ]
+      ],
+      "architecture": [
+        [
+          "p",
+          "Two containers. The emulator answers the AWS API in memory. The lab container holds Terraform, the providers, the gate tools, the API and this UI. The UI never runs Terraform itself: it asks the API, and the API runs the same make targets that CI runs."
+        ],
+        [
+          "table",
+          [
+            "Component",
+            "Technology",
+            "Role"
+          ],
+          [
+            [
+              "Emulator",
+              "moto server 5.2.5",
+              "In-memory AWS API: S3, DynamoDB, EC2/VPC, RDS, CloudWatch, IAM, Logs."
+            ],
+            [
+              "Lab API",
+              "Python, FastAPI",
+              "Runs make targets as jobs, one at a time, and records each stage. Reads the state for the map and FinOps views."
+            ],
+            [
+              "Web UI",
+              "HTML, CSS, JavaScript",
+              "No build step and no external request. English and Portuguese."
+            ],
+            [
+              "Pipeline entry point",
+              "Makefile",
+              "One implementation used by people, CI and the UI."
+            ],
+            [
+              "CI",
+              "GitHub Actions",
+              "Starts the same containers and runs make ci and make test."
+            ]
+          ]
+        ],
+        [
+          "p",
+          "Flow of one pipeline run: fmt, validate, tflint, gitleaks, plan, Checkov on the plan, route and tag policy, cost budget, manual approval, apply. Any failed gate stops the run before the approval."
+        ],
+        [
+          "table",
+          [
+            "Path",
+            "Content"
+          ],
+          [
+            [
+              "bootstrap/",
+              "State bucket and lock table."
+            ],
+            [
+              "modules/aws/",
+              "vpc, rds, cloudwatch."
+            ],
+            [
+              "modules/azure/",
+              "vnet, monitor."
+            ],
+            [
+              "envs/local/",
+              "The environment applied on the emulator."
+            ],
+            [
+              "envs/azure-example/",
+              "Reference wiring of the Azure modules."
+            ],
+            [
+              "scenarios/",
+              "Input files of the plan-time failure scenarios."
+            ],
+            [
+              "scripts/",
+              "Plan policy, cost estimate, orphan check."
+            ],
+            [
+              "policies/checkov/",
+              "Custom Checkov policy."
+            ],
+            [
+              "k8s/",
+              "Demonstration manifests."
+            ],
+            [
+              "app/",
+              "API and web UI."
+            ],
+            [
+              "tests/",
+              "Unit and end-to-end tests."
+            ]
+          ]
+        ]
+      ],
+      "modules": [
+        [
+          "p",
+          "Every module has typed variables with validation, outputs, and exact provider versions. Standard tags (Project, Env, Owner, CostCenter, ManagedBy) come from the provider default_tags, so no resource can forget them."
+        ],
+        [
+          "table",
+          [
+            "Module",
+            "Creates",
+            "Inputs worth knowing"
+          ],
+          [
+            [
+              "modules/aws/vpc",
+              "VPC, three subnet tiers per AZ (public, app, data), internet gateway, optional NAT gateway, one route table per tier, locked default security group, flow logs to CloudWatch.",
+              "enable_nat_gateway (cost), single_nat_gateway (cheaper, no AZ redundancy), azs (2 to 4)."
+            ],
+            [
+              "modules/aws/rds",
+              "PostgreSQL instance in the data tier, subnet group, security group with inline rules, parameter group forcing TLS, master password managed by Secrets Manager, encryption, backups, IAM authentication.",
+              "allowed_cidr_blocks (least privilege), instance_class and multi_az (cost), deletion_protection."
+            ],
+            [
+              "modules/aws/cloudwatch",
+              "Application log group with retention, three RDS alarms (CPU, connections, free storage), dashboard, optional SNS topic.",
+              "Thresholds, log_retention_days (cost), create_sns_topic."
+            ]
+          ]
+        ],
+        [
+          "p",
+          "Subnet layout: the VPC is a /16 and each subnet is a /20. Each tier owns a block of four indexes, so adding an AZ never renumbers an existing subnet."
+        ],
+        [
+          "ul",
+          [
+            "Public tier: default route to the internet gateway.",
+            "App tier: default route to the NAT gateway. Without NAT it has no outbound access, and the route policy fails the plan.",
+            "Data tier: no default route at all. The policy fails the plan if one appears."
+          ]
+        ]
+      ],
+      "state": [
+        [
+          "p",
+          "The state lives in S3 and is locked through DynamoDB. bootstrap/ creates both once, with local state; every other root module then uses the remote backend."
+        ],
+        [
+          "table",
+          [
+            "Control",
+            "Why"
+          ],
+          [
+            [
+              "Bucket versioning",
+              "A bad state write can be rolled back to the previous version."
+            ],
+            [
+              "Server-side encryption",
+              "The state contains resource attributes that should not be readable at rest."
+            ],
+            [
+              "Public access block",
+              "The bucket can never be exposed by a wrong ACL or policy."
+            ],
+            [
+              "TLS-only bucket policy",
+              "Requests over plain HTTP are denied. Validated by plan and scan only: the emulator speaks HTTP."
+            ],
+            [
+              "DynamoDB lock",
+              "Two runs cannot write the same state. A second run fails fast with the lock ID."
+            ]
+          ]
+        ],
+        [
+          "p",
+          "Moving an existing local state to the backend: add the backend block, run terraform init -migrate-state, confirm, then delete the local file. The lab starts directly on the remote backend."
+        ],
+        [
+          "note",
+          "Terraform now prefers native S3 locking (use_lockfile) and marks dynamodb_table as deprecated. The table is kept here on purpose; see Decisions."
+        ]
+      ],
+      "pipeline": [
+        [
+          "p",
+          "Gates run on the plan exported as JSON, so every variable is already resolved. A bad value passed by a tfvars file is caught exactly like a bad value written in the module."
+        ],
+        [
+          "table",
+          [
+            "Stage",
+            "Tool",
+            "Blocks"
+          ],
+          [
+            [
+              "fmt",
+              "terraform fmt -check",
+              "Unformatted code."
+            ],
+            [
+              "validate",
+              "terraform validate",
+              "Syntax and type errors, in the AWS and Azure environments."
+            ],
+            [
+              "lint",
+              "tflint",
+              "Deprecated syntax, unused declarations, missing types."
+            ],
+            [
+              "secrets",
+              "gitleaks",
+              "Credentials in the working tree."
+            ],
+            [
+              "plan",
+              "terraform plan",
+              "Anything the provider rejects; also fails fast on a held state lock."
+            ],
+            [
+              "scan",
+              "Checkov on the plan",
+              "Insecure settings, plus the custom rule against 0.0.0.0/0 ingress."
+            ],
+            [
+              "scan-azure, scan-k8s",
+              "Checkov on the code",
+              "Insecure settings in the Azure modules and Kubernetes manifests."
+            ],
+            [
+              "policy",
+              "scripts/plan_policy.py",
+              "A tier without its default route, an isolated tier with one, a resource without the standard tags."
+            ],
+            [
+              "cost",
+              "scripts/cost_estimate.py",
+              "A monthly estimate above BUDGET."
+            ],
+            [
+              "approval",
+              "Person",
+              "Nothing is applied without it. In GitHub Actions this is a protected environment."
+            ],
+            [
+              "apply",
+              "terraform apply",
+              "Applies exactly the plan file that passed the gates."
+            ]
+          ]
+        ],
+        [
+          "table",
+          [
+            "Other targets",
+            "Use"
+          ],
+          [
+            [
+              "make drift",
+              "Fails when real infrastructure differs from the code."
+            ],
+            [
+              "make destroy",
+              "Destroys the environment."
+            ],
+            [
+              "make orphan-check",
+              "Lists anything that exists but is not in the state."
+            ],
+            [
+              "make unlock ID=<id>",
+              "Releases a stale state lock."
+            ],
+            [
+              "make plan VARS=scenarios/<name>/broken.tfvars",
+              "Plans a failure scenario by hand."
+            ]
+          ]
+        ],
+        [
+          "p",
+          "Real account: the workflows document the change in a comment. Replace the emulator with an OIDC role (aws-actions/configure-aws-credentials), so the pipeline holds no long-lived key."
+        ]
+      ],
+      "scenarios": [
+        [
+          "p",
+          "Each scenario injects one fault and names the control that must stop it. A test fails if the fault is caught by a different control, or not at all. Run them in the Failure lab tab; the Scenario cards tab explains each one."
+        ],
+        [
+          "table",
+          [
+            "Scenario",
+            "When",
+            "Control"
+          ],
+          [
+            [
+              "Missing route",
+              "Plan",
+              "make policy"
+            ],
+            [
+              "Open security group",
+              "Plan",
+              "make scan"
+            ],
+            [
+              "Forgotten costly resource",
+              "Plan",
+              "make cost"
+            ],
+            [
+              "Stale state lock",
+              "Runtime",
+              "make plan"
+            ],
+            [
+              "Drift",
+              "Runtime",
+              "make drift"
+            ],
+            [
+              "Dirty destroy",
+              "Runtime",
+              "make orphan-check"
+            ],
+            [
+              "Secret leak",
+              "Repository",
+              "make secrets"
+            ]
+          ]
+        ],
+        [
+          "ul",
+          [
+            "Plan-time faults only change input variables. They are blocked before anything is applied.",
+            "Runtime faults change the emulator directly through its API, the way a person with console access would.",
+            "The secret is a random fake key generated when you click. The repository never contains one."
+          ]
+        ]
+      ],
+      "finops": [
+        [
+          "p",
+          "Three controls keep cost visible before the invoice arrives."
+        ],
+        [
+          "table",
+          [
+            "Control",
+            "How"
+          ],
+          [
+            [
+              "Cost gate",
+              "An estimate per resource from the plan, compared with a monthly budget (BUDGET, 100 USD in the lab). The run fails when the total is above it."
+            ],
+            [
+              "Tag policy",
+              "Every taggable resource must carry Project, Env, Owner, CostCenter and ManagedBy. Checked on the plan."
+            ],
+            [
+              "Orphan check",
+              "Anything that exists outside the state is listed, with a note when it has no ManagedBy tag."
+            ]
+          ]
+        ],
+        [
+          "note",
+          "Prices in finops/prices.json are reference on-demand list prices for us-east-1, a labelled snapshot and not a quote. Data transfer, log ingestion and Secrets Manager are not estimated. An instance class missing from the table is reported as unknown, never as zero."
+        ],
+        [
+          "p",
+          "Variables marked COST in their description are the ones that move the bill: NAT gateway, instance class, Multi-AZ, log retention. Infracost can replace the price table in CI when the repository has an INFRACOST_API_KEY secret."
+        ]
+      ],
+      "azure": [
+        [
+          "p",
+          "The Azure modules mirror the AWS network and monitoring modules. They are checked with terraform validate and Checkov only. There is no Azure account or emulator behind the lab, so they have never been planned or applied."
+        ],
+        [
+          "table",
+          [
+            "Module",
+            "Creates"
+          ],
+          [
+            [
+              "modules/azure/vnet",
+              "Virtual network, one subnet per tier, one NSG per tier, database port open from the app tier only, default outbound access disabled on private tiers, optional NAT gateway."
+            ],
+            [
+              "modules/azure/monitor",
+              "Log Analytics workspace, three metric alerts for a PostgreSQL Flexible Server, optional action group."
+            ]
+          ]
+        ]
+      ],
+      "kubernetes": [
+        [
+          "p",
+          "k8s/demo-app.yaml is a stateless web workload written the way it would go to EKS or AKS. It is checked by Checkov in the pipeline and has not been applied to any cluster."
+        ],
+        [
+          "table",
+          [
+            "Practice",
+            "Where in the manifest"
+          ],
+          [
+            [
+              "No root, no privilege escalation, read-only filesystem",
+              "Pod and container securityContext."
+            ],
+            [
+              "Image cannot change under the same name",
+              "Image pinned by digest."
+            ],
+            [
+              "Predictable scheduling and autoscaling",
+              "CPU and memory requests and limits."
+            ],
+            [
+              "Traffic only to healthy pods",
+              "Readiness and liveness probes."
+            ],
+            [
+              "Survives the loss of one zone",
+              "Two replicas with a zone spread constraint."
+            ],
+            [
+              "Deny by default",
+              "A default-deny NetworkPolicy, then one policy allowing HTTP to the pods."
+            ],
+            [
+              "Safe node maintenance",
+              "PodDisruptionBudget with one pod always available."
+            ],
+            [
+              "Elastic capacity",
+              "HorizontalPodAutoscaler from 2 to 6 replicas at 70% CPU."
+            ],
+            [
+              "No API credentials in the pod",
+              "Service account token not mounted."
+            ]
+          ]
+        ]
+      ],
+      "troubleshooting": [
+        [
+          "table",
+          [
+            "Symptom",
+            "Cause and fix"
+          ],
+          [
+            [
+              "make up fails on port 8080",
+              "Another process uses the port. Stop it, or change the published port in docker-compose.yml."
+            ],
+            [
+              "Status stays on Setting up",
+              "The lab is creating the state backend. Check make logs; the emulator must be reachable at http://moto:5000 inside the network."
+            ],
+            [
+              "Error acquiring the state lock",
+              "A previous run was interrupted. Read the lock ID in the message and run make unlock ID=<id>, after making sure no run is alive."
+            ],
+            [
+              "A button answers 'another job is running'",
+              "Jobs share one Terraform state and run one at a time. Wait for the current job."
+            ],
+            [
+              "Failure lab buttons are disabled",
+              "Runtime scenarios need the baseline applied. Run the pipeline first."
+            ],
+            [
+              "Everything disappeared after make down",
+              "Expected: the emulator keeps data in memory only."
+            ],
+            [
+              "The apply takes more than a minute",
+              "The provider waits and polls for the database instance, even on the emulator."
+            ]
+          ]
         ]
       ]
     }

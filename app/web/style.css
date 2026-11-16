@@ -61,3 +61,10 @@ dd { margin: 2px 0 0; }
 .note { border-left: 4px solid var(--warn); padding: 6px 12px; background: var(--warn-bg); border-radius: 0 6px 6px 0; margin: 10px 0; }
 code { font-size: 13px; background: var(--bg); padding: 1px 5px; border-radius: 4px; border: 1px solid var(--line); }
 @media (max-width: 640px) { main, header, nav { padding-left: 12px; padding-right: 12px; } .map { grid-template-columns: 90px repeat(var(--azs, 2), 1fr); font-size: 12.5px; } }
+.wiki { display: grid; gap: 16px; grid-template-columns: 220px 1fr; align-items: start; }
+.wiki nav { display: flex; flex-direction: column; gap: 2px; padding: 12px; border-bottom: 1px solid var(--line); }
+.wiki nav button { border: 0; border-left: 3px solid transparent; border-radius: 0; background: none; color: var(--text); text-align: left; padding: 6px 10px; cursor: pointer; }
+.wiki nav button[aria-current="true"] { border-color: var(--accent); color: var(--accent); font-weight: 600; background: var(--bg); }
+.wiki article { min-width: 0; }
+@media (max-width: 760px) { .wiki { grid-template-columns: 1fr; } .wiki nav { flex-direction: row; flex-wrap: wrap; } }
+.wiki article .scroll { margin-bottom: 18px; }
