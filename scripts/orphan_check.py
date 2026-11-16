@@ -50,9 +50,13 @@ def live_resources():
             yield "nat-gateway", n["NatGatewayId"], tags(n)
     for a in ec2.describe_addresses()["Addresses"]:
         yield "elastic-ip", a["AllocationId"], tags(a)
+    # The emulator keeps a NAT gateway's interface after its VPC is deleted. An interface
+    # cannot outlive its VPC on AWS, so those leftovers are an emulator artifact, not orphans.
+    vpc_ids = {v["VpcId"] for v in ec2.describe_vpcs()["Vpcs"]}
     for i in filter(in_lab, ec2.describe_network_interfaces()["NetworkInterfaces"]):
-        if not i.get("RequesterManaged") and i["NetworkInterfaceId"] not in nat_enis:
-            yield "network-interface", i["NetworkInterfaceId"], {t["Key"]: t["Value"] for t in i.get("TagSet", [])}
+        if i.get("RequesterManaged") or i["NetworkInterfaceId"] in nat_enis or i["VpcId"] not in vpc_ids:
+            continue
+        yield "network-interface", i["NetworkInterfaceId"], {t["Key"]: t["Value"] for t in i.get("TagSet", [])}
     for d in boto3.client("rds").describe_db_instances()["DBInstances"]:
         yield "db-instance", d["DBInstanceIdentifier"], {t["Key"]: t["Value"] for t in d.get("TagList", [])}
     for g in boto3.client("logs").describe_log_groups()["logGroups"]:
