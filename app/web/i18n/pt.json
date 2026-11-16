@@ -264,8 +264,8 @@
       ],
       [
         "tflint",
-        "not_run",
-        "Configurado na imagem e no Makefile"
+        "local",
+        "Ruleset terraform embutido, verificado na execução do CI"
       ],
       [
         "Infracost",
@@ -273,9 +273,14 @@
         "Precisa de chave de API; o laboratório usa a tabela de preços offline"
       ],
       [
-        "Workflows do GitHub Actions",
+        "GitHub Actions: workflow ci (gates e testes de ponta a ponta)",
+        "emulator",
+        "Verde em runner hospedado pelo GitHub"
+      ],
+      [
+        "GitHub Actions: workflows apply e destroy",
         "not_run",
-        "Escritos, ainda não executados"
+        "Workflows manuais, ainda não disparados"
       ],
       [
         "Qualquer coisa em conta AWS real",
