@@ -8,7 +8,7 @@
       "compare": "Antes × depois",
       "cards": "Cartões de cenário",
       "finops": "FinOps",
-      "docs": "Docs"
+      "docs": "Wiki"
     },
     "status": {
       "setup": "Preparando",
@@ -117,7 +117,6 @@
     "tags_ok": "Todo recurso que aceita tags tem: {tags}.",
     "orphans_title": "Recursos fora do state",
     "orphans_ok": "Nenhum. Tudo que existe no emulador está no state do Terraform.",
-    "docs_validation": "O que foi validado, e como",
     "docs_item": "Item",
     "docs_level": "Nível",
     "docs_note": "Observação",
@@ -128,11 +127,9 @@
       "not_run": "Ainda não executado",
       "real": "Conta real"
     },
-    "docs_adrs": "Decisões (ADRs curtos)",
     "decision": "Decisão",
     "why": "Por quê",
-    "docs_lessons": "Lições aprendidas e custos",
-    "docs_quickstart": "Início rápido"
+    "wiki_topics": "Tópicos"
   },
   "scenarios": {
     "missing-route": {
@@ -221,11 +218,6 @@
     }
   },
   "docs": {
-    "quickstart": [
-      "git clone <este repositório> && cd <pasta>",
-      "make up",
-      "abra http://localhost:8080"
-    ],
     "validation": [
       [
         "VPC, sub-redes, rotas, NAT gateway, flow logs",
@@ -431,6 +423,587 @@
           "8. Rollback",
           "Decidir antes da janela o que dispara o rollback e até quando ele é possível. Manter o banco antigo somente leitura e intocado até passar o ponto de decisão.",
           "Ou a aprovação é dada ou o DNS volta, sem dado gravado em um lado só."
+        ]
+      ]
+    },
+    "topics": {
+      "overview": "Visão geral",
+      "architecture": "Arquitetura",
+      "modules": "Módulos Terraform",
+      "state": "Remote state",
+      "pipeline": "Pipeline e gates",
+      "scenarios": "Cenários de falha",
+      "finops": "FinOps",
+      "azure": "Equivalente Azure",
+      "kubernetes": "Kubernetes",
+      "migration": "Runbook de migração",
+      "validation": "Níveis de validação",
+      "decisions": "Decisões",
+      "lessons": "Lições aprendidas",
+      "troubleshooting": "Solução de problemas"
+    },
+    "wiki": {
+      "overview": [
+        [
+          "p",
+          "Um laboratório de Terraform para AWS com os controles que um pipeline de produção precisa: gates de qualidade e segurança antes de o plan ser aprovado, orçamento de custo, detecção de drift e de órfãos, e sete cenários de falha que provam que cada controle funciona. Tudo roda em um emulador local da AWS, então não há conta de nuvem nem custo."
+        ],
+        [
+          "code",
+          "git clone <este repositório> && cd <pasta>\nmake up        # constrói a imagem, sobe o emulador, abre http://localhost:8080\nmake ci        # todos os gates, na ordem do pipeline\nmake test      # apply, injeta as sete falhas, destroy, orphan-check\nmake down      # para e apaga tudo"
+        ],
+        [
+          "table",
+          [
+            "Requisito",
+            "Observação"
+          ],
+          [
+            [
+              "Docker com Compose v2",
+              "A única coisa instalada na máquina."
+            ],
+            [
+              "make",
+              "Opcional. Sem ele: docker compose up -d --build --wait"
+            ],
+            [
+              "Internet no primeiro build",
+              "Baixa a imagem base, o Terraform, os providers e as ferramentas dos gates. Nada é baixado em tempo de execução."
+            ]
+          ]
+        ],
+        [
+          "table",
+          [
+            "Aba",
+            "O que mostra"
+          ],
+          [
+            [
+              "Pipeline",
+              "Roda os gates, espera a aprovação manual e aplica. Cada etapa tem status, duração e log."
+            ],
+            [
+              "Mapa da rede",
+              "A topologia aplicada, lida do state do Terraform, com as regras reais do security group."
+            ],
+            [
+              "Laboratório de falhas",
+              "Injete cada falha e veja o controle que a barra."
+            ],
+            [
+              "Antes × depois",
+              "Durações das etapas medidas neste laboratório."
+            ],
+            [
+              "Cartões de cenário",
+              "Cada cenário em seis campos fixos."
+            ],
+            [
+              "FinOps",
+              "Custo mensal estimado, política de tags e recursos fora do state."
+            ],
+            [
+              "Wiki",
+              "Esta documentação."
+            ]
+          ]
+        ]
+      ],
+      "architecture": [
+        [
+          "p",
+          "Dois containers. O emulador responde a API da AWS em memória. O container do laboratório tem o Terraform, os providers, as ferramentas dos gates, a API e esta tela. A tela nunca roda Terraform: ela pede à API, e a API roda os mesmos alvos do make que o CI roda."
+        ],
+        [
+          "table",
+          [
+            "Componente",
+            "Tecnologia",
+            "Papel"
+          ],
+          [
+            [
+              "Emulador",
+              "moto server 5.2.5",
+              "API da AWS em memória: S3, DynamoDB, EC2/VPC, RDS, CloudWatch, IAM, Logs."
+            ],
+            [
+              "API do laboratório",
+              "Python, FastAPI",
+              "Roda alvos do make como jobs, um por vez, e registra cada etapa. Lê o state para o mapa e para o FinOps."
+            ],
+            [
+              "Tela web",
+              "HTML, CSS, JavaScript",
+              "Sem etapa de build e sem requisição externa. Inglês e português."
+            ],
+            [
+              "Entrada do pipeline",
+              "Makefile",
+              "Uma única implementação usada por pessoas, CI e tela."
+            ],
+            [
+              "CI",
+              "GitHub Actions",
+              "Sobe os mesmos containers e roda make ci e make test."
+            ]
+          ]
+        ],
+        [
+          "p",
+          "Fluxo de uma execução: fmt, validate, tflint, gitleaks, plan, Checkov no plan, política de rotas e tags, orçamento de custo, aprovação manual, apply. Qualquer gate que falha interrompe a execução antes da aprovação."
+        ],
+        [
+          "table",
+          [
+            "Caminho",
+            "Conteúdo"
+          ],
+          [
+            [
+              "bootstrap/",
+              "Bucket do state e tabela de lock."
+            ],
+            [
+              "modules/aws/",
+              "vpc, rds, cloudwatch."
+            ],
+            [
+              "modules/azure/",
+              "vnet, monitor."
+            ],
+            [
+              "envs/local/",
+              "O ambiente aplicado no emulador."
+            ],
+            [
+              "envs/azure-example/",
+              "Ligação de referência dos módulos Azure."
+            ],
+            [
+              "scenarios/",
+              "Arquivos de entrada dos cenários de falha de plan."
+            ],
+            [
+              "scripts/",
+              "Política do plan, estimativa de custo, verificação de órfãos."
+            ],
+            [
+              "policies/checkov/",
+              "Política customizada do Checkov."
+            ],
+            [
+              "k8s/",
+              "Manifests de demonstração."
+            ],
+            [
+              "app/",
+              "API e tela web."
+            ],
+            [
+              "tests/",
+              "Testes unitários e de ponta a ponta."
+            ]
+          ]
+        ]
+      ],
+      "modules": [
+        [
+          "p",
+          "Todo módulo tem variáveis tipadas com validação, outputs e versões exatas de provider. As tags padrão (Project, Env, Owner, CostCenter, ManagedBy) vêm do default_tags do provider, então nenhum recurso consegue esquecê-las."
+        ],
+        [
+          "table",
+          [
+            "Módulo",
+            "Cria",
+            "Entradas que importam"
+          ],
+          [
+            [
+              "modules/aws/vpc",
+              "VPC, três camadas de sub-rede por AZ (public, app, data), internet gateway, NAT gateway opcional, uma route table por camada, security group padrão travado, flow logs no CloudWatch.",
+              "enable_nat_gateway (custo), single_nat_gateway (mais barato, sem redundância de AZ), azs (2 a 4)."
+            ],
+            [
+              "modules/aws/rds",
+              "Instância PostgreSQL na camada de dados, subnet group, security group com regras inline, parameter group forçando TLS, senha mestre gerenciada pelo Secrets Manager, criptografia, backups, autenticação IAM.",
+              "allowed_cidr_blocks (menor privilégio), instance_class e multi_az (custo), deletion_protection."
+            ],
+            [
+              "modules/aws/cloudwatch",
+              "Log group da aplicação com retenção, três alarmes do RDS (CPU, conexões, espaço livre), dashboard, tópico SNS opcional.",
+              "Limites, log_retention_days (custo), create_sns_topic."
+            ]
+          ]
+        ],
+        [
+          "p",
+          "Layout das sub-redes: a VPC é um /16 e cada sub-rede é um /20. Cada camada é dona de um bloco de quatro índices, então adicionar uma AZ nunca renumera uma sub-rede existente."
+        ],
+        [
+          "ul",
+          [
+            "Camada public: rota padrão para o internet gateway.",
+            "Camada app: rota padrão para o NAT gateway. Sem NAT ela não tem saída, e a política de rotas reprova o plan.",
+            "Camada data: nenhuma rota padrão. A política reprova o plan se aparecer uma."
+          ]
+        ]
+      ],
+      "state": [
+        [
+          "p",
+          "O state fica no S3 e é travado pelo DynamoDB. O bootstrap/ cria os dois uma vez, com state local; todos os outros módulos raiz usam o backend remoto."
+        ],
+        [
+          "table",
+          [
+            "Controle",
+            "Por quê"
+          ],
+          [
+            [
+              "Versionamento do bucket",
+              "Uma gravação ruim do state pode voltar para a versão anterior."
+            ],
+            [
+              "Criptografia no servidor",
+              "O state contém atributos de recursos que não devem ser legíveis em repouso."
+            ],
+            [
+              "Bloqueio de acesso público",
+              "O bucket nunca fica exposto por uma ACL ou política errada."
+            ],
+            [
+              "Política de bucket somente TLS",
+              "Requisições por HTTP puro são negadas. Validada só por plan e scan: o emulador fala HTTP."
+            ],
+            [
+              "Lock no DynamoDB",
+              "Duas execuções não gravam o mesmo state. A segunda falha rápido mostrando o ID do lock."
+            ]
+          ]
+        ],
+        [
+          "p",
+          "Para levar um state local existente ao backend: adicione o bloco backend, rode terraform init -migrate-state, confirme e apague o arquivo local. O laboratório já nasce no backend remoto."
+        ],
+        [
+          "note",
+          "O Terraform agora prefere o lock nativo no S3 (use_lockfile) e marca dynamodb_table como depreciado. A tabela foi mantida de propósito; veja Decisões."
+        ]
+      ],
+      "pipeline": [
+        [
+          "p",
+          "Os gates rodam sobre o plan exportado em JSON, então toda variável já está resolvida. Um valor ruim passado por tfvars é pego exatamente como um valor ruim escrito no módulo."
+        ],
+        [
+          "table",
+          [
+            "Etapa",
+            "Ferramenta",
+            "Bloqueia"
+          ],
+          [
+            [
+              "fmt",
+              "terraform fmt -check",
+              "Código fora do formato."
+            ],
+            [
+              "validate",
+              "terraform validate",
+              "Erros de sintaxe e de tipo, nos ambientes AWS e Azure."
+            ],
+            [
+              "lint",
+              "tflint",
+              "Sintaxe depreciada, declarações sem uso, tipos ausentes."
+            ],
+            [
+              "secrets",
+              "gitleaks",
+              "Credenciais na árvore de trabalho."
+            ],
+            [
+              "plan",
+              "terraform plan",
+              "Tudo que o provider rejeita; também falha rápido com lock de state preso."
+            ],
+            [
+              "scan",
+              "Checkov no plan",
+              "Configurações inseguras, mais a regra própria contra entrada de 0.0.0.0/0."
+            ],
+            [
+              "scan-azure, scan-k8s",
+              "Checkov no código",
+              "Configurações inseguras nos módulos Azure e nos manifests Kubernetes."
+            ],
+            [
+              "policy",
+              "scripts/plan_policy.py",
+              "Camada sem sua rota padrão, camada isolada com rota, recurso sem as tags padrão."
+            ],
+            [
+              "cost",
+              "scripts/cost_estimate.py",
+              "Estimativa mensal acima do BUDGET."
+            ],
+            [
+              "approval",
+              "Pessoa",
+              "Nada é aplicado sem ela. No GitHub Actions é um environment protegido."
+            ],
+            [
+              "apply",
+              "terraform apply",
+              "Aplica exatamente o arquivo de plan que passou nos gates."
+            ]
+          ]
+        ],
+        [
+          "table",
+          [
+            "Outros alvos",
+            "Uso"
+          ],
+          [
+            [
+              "make drift",
+              "Falha quando a infraestrutura real difere do código."
+            ],
+            [
+              "make destroy",
+              "Destrói o ambiente."
+            ],
+            [
+              "make orphan-check",
+              "Lista tudo que existe e não está no state."
+            ],
+            [
+              "make unlock ID=<id>",
+              "Libera um lock de state preso."
+            ],
+            [
+              "make plan VARS=scenarios/<nome>/broken.tfvars",
+              "Planeja um cenário de falha à mão."
+            ]
+          ]
+        ],
+        [
+          "p",
+          "Conta real: os workflows documentam a troca em um comentário. Substitua o emulador por uma role OIDC (aws-actions/configure-aws-credentials), assim o pipeline não guarda chave de longa duração."
+        ]
+      ],
+      "scenarios": [
+        [
+          "p",
+          "Cada cenário injeta uma falha e nomeia o controle que precisa barrá-la. Um teste falha se a falha for pega por outro controle, ou por nenhum. Rode na aba Laboratório de falhas; a aba Cartões de cenário explica cada um."
+        ],
+        [
+          "table",
+          [
+            "Cenário",
+            "Quando",
+            "Controle"
+          ],
+          [
+            [
+              "Rota ausente",
+              "Plan",
+              "make policy"
+            ],
+            [
+              "Security group aberto",
+              "Plan",
+              "make scan"
+            ],
+            [
+              "Recurso caro esquecido",
+              "Plan",
+              "make cost"
+            ],
+            [
+              "Lock de state preso",
+              "Runtime",
+              "make plan"
+            ],
+            [
+              "Drift",
+              "Runtime",
+              "make drift"
+            ],
+            [
+              "Destroy sujo",
+              "Runtime",
+              "make orphan-check"
+            ],
+            [
+              "Vazamento de segredo",
+              "Repositório",
+              "make secrets"
+            ]
+          ]
+        ],
+        [
+          "ul",
+          [
+            "Falhas de plan só mudam variáveis de entrada. São bloqueadas antes de qualquer apply.",
+            "Falhas de runtime alteram o emulador direto pela API, como faria uma pessoa com acesso ao console.",
+            "O segredo é uma chave falsa aleatória gerada no clique. O repositório nunca contém uma."
+          ]
+        ]
+      ],
+      "finops": [
+        [
+          "p",
+          "Três controles mantêm o custo visível antes de a fatura chegar."
+        ],
+        [
+          "table",
+          [
+            "Controle",
+            "Como"
+          ],
+          [
+            [
+              "Gate de custo",
+              "Uma estimativa por recurso a partir do plan, comparada a um orçamento mensal (BUDGET, 100 USD no laboratório). A execução falha quando o total passa dele."
+            ],
+            [
+              "Política de tags",
+              "Todo recurso que aceita tags precisa de Project, Env, Owner, CostCenter e ManagedBy. Verificado no plan."
+            ],
+            [
+              "Verificação de órfãos",
+              "Tudo que existe fora do state é listado, com aviso quando não tem a tag ManagedBy."
+            ]
+          ]
+        ],
+        [
+          "note",
+          "Os preços em finops/prices.json são preços de tabela on-demand de referência para us-east-1, um retrato rotulado e não uma cotação. Transferência de dados, ingestão de logs e Secrets Manager não são estimados. Uma classe de instância fora da tabela aparece como desconhecida, nunca como zero."
+        ],
+        [
+          "p",
+          "As variáveis marcadas com COST na descrição são as que mexem na fatura: NAT gateway, classe da instância, Multi-AZ, retenção de logs. O Infracost pode substituir a tabela de preços no CI quando o repositório tem o secret INFRACOST_API_KEY."
+        ]
+      ],
+      "azure": [
+        [
+          "p",
+          "Os módulos Azure espelham os módulos de rede e monitoramento da AWS. São verificados só com terraform validate e Checkov. Não há conta nem emulador do Azure por trás do laboratório, então nunca foram planejados nem aplicados."
+        ],
+        [
+          "table",
+          [
+            "Módulo",
+            "Cria"
+          ],
+          [
+            [
+              "modules/azure/vnet",
+              "Virtual network, uma sub-rede por camada, um NSG por camada, porta do banco aberta só a partir da camada app, saída padrão desligada nas camadas privadas, NAT gateway opcional."
+            ],
+            [
+              "modules/azure/monitor",
+              "Workspace do Log Analytics, três alertas de métrica para um PostgreSQL Flexible Server, action group opcional."
+            ]
+          ]
+        ]
+      ],
+      "kubernetes": [
+        [
+          "p",
+          "k8s/demo-app.yaml é uma carga web stateless escrita como iria para EKS ou AKS. É verificada pelo Checkov no pipeline e não foi aplicada em nenhum cluster."
+        ],
+        [
+          "table",
+          [
+            "Prática",
+            "Onde no manifest"
+          ],
+          [
+            [
+              "Sem root, sem escalação de privilégio, filesystem somente leitura",
+              "securityContext do pod e do container."
+            ],
+            [
+              "A imagem não muda sob o mesmo nome",
+              "Imagem fixada por digest."
+            ],
+            [
+              "Agendamento e autoscaling previsíveis",
+              "Requests e limits de CPU e memória."
+            ],
+            [
+              "Tráfego só para pods saudáveis",
+              "Probes de readiness e liveness."
+            ],
+            [
+              "Sobrevive à perda de uma zona",
+              "Duas réplicas com restrição de espalhamento por zona."
+            ],
+            [
+              "Negar por padrão",
+              "Uma NetworkPolicy default-deny e depois uma liberando HTTP para os pods."
+            ],
+            [
+              "Manutenção segura de nós",
+              "PodDisruptionBudget com um pod sempre disponível."
+            ],
+            [
+              "Capacidade elástica",
+              "HorizontalPodAutoscaler de 2 a 6 réplicas a 70% de CPU."
+            ],
+            [
+              "Sem credencial da API no pod",
+              "Token da service account não montado."
+            ]
+          ]
+        ]
+      ],
+      "troubleshooting": [
+        [
+          "table",
+          [
+            "Sintoma",
+            "Causa e correção"
+          ],
+          [
+            [
+              "make up falha na porta 8080",
+              "Outro processo usa a porta. Pare-o, ou troque a porta publicada no docker-compose.yml."
+            ],
+            [
+              "O status fica em Preparando",
+              "O laboratório está criando o backend do state. Veja make logs; o emulador precisa responder em http://moto:5000 dentro da rede."
+            ],
+            [
+              "Error acquiring the state lock",
+              "Uma execução anterior foi interrompida. Leia o ID do lock na mensagem e rode make unlock ID=<id>, depois de garantir que nenhuma execução está viva."
+            ],
+            [
+              "Um botão responde 'another job is running'",
+              "Os jobs compartilham um state do Terraform e rodam um por vez. Espere o job atual."
+            ],
+            [
+              "Botões do laboratório de falhas desabilitados",
+              "Cenários de runtime precisam da base aplicada. Rode o pipeline primeiro."
+            ],
+            [
+              "Tudo sumiu depois do make down",
+              "Esperado: o emulador guarda os dados só em memória."
+            ],
+            [
+              "O apply leva mais de um minuto",
+              "O provider espera e consulta a instância de banco, mesmo no emulador."
+            ]
+          ]
         ]
       ]
     }

@@ -30,6 +30,7 @@ async function setLang(lang) {
   document.querySelectorAll("[data-lang]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.lang === lang));
   document.getElementById("tabs").innerHTML = TABS.map((id) =>
     `<button type="button" role="tab" data-tab="${id}" aria-selected="${id === state.tab}">${esc(t("ui.tabs." + id))}</button>`).join("");
+  refreshStatus();
   render();
 }
 
@@ -245,25 +246,41 @@ async function renderFinops() {
     </div>`;
 }
 
-// ---------- tab: docs ----------
+// ---------- tab: wiki ----------
+const WIKI = ["overview", "architecture", "modules", "state", "pipeline", "scenarios", "finops", "azure", "kubernetes", "migration", "validation", "decisions", "lessons", "troubleshooting"];
+
+const table = (head, rows) => `<div class="scroll"><table><thead><tr>${head.map((h) => `<th>${esc(h)}</th>`).join("")}</tr></thead>
+  <tbody>${rows.map((r) => `<tr>${r.map((c, i) => (i ? `<td>${c}</td>` : `<th scope="row">${c}</th>`)).join("")}</tr>`).join("")}</tbody></table></div>`;
+const escRows = (rows) => rows.map((r) => r.map(esc));
+
+// Generic topic content: a list of [type, ...data] blocks from the i18n file.
+function blocks(list) {
+  return (list || []).map(([type, a, b]) => ({
+    p: () => `<p>${esc(a)}</p>`,
+    note: () => `<div class="note">${esc(a)}</div>`,
+    code: () => `<pre>${esc(a)}</pre>`,
+    ul: () => `<ul>${a.map((item) => `<li>${esc(item)}</li>`).join("")}</ul>`,
+    table: () => table(a, escRows(b)),
+  })[type]()).join("");
+}
+
 async function renderDocs() {
   const d = state.texts.docs;
+  const topic = WIKI.includes(state.topic) ? state.topic : "overview";
   const level = { emulator: "ok", local: "ok", plan: "warn", not_run: "", real: "ok" };
-  view.innerHTML = `
-    <div class="panel"><h2>${esc(t("ui.docs_quickstart"))}</h2><pre>${d.quickstart.map(esc).join("\n")}</pre></div>
-    <div class="panel"><h2>${esc(t("ui.docs_validation"))}</h2><div class="scroll"><table>
-      <thead><tr><th>${esc(t("ui.docs_item"))}</th><th>${esc(t("ui.docs_level"))}</th><th>${esc(t("ui.docs_note"))}</th></tr></thead>
-      <tbody>${d.validation.map(([item, lvl, note]) => `<tr><td>${esc(item)}</td><td>${pill(level[lvl], t("ui.levels." + lvl))}</td><td>${esc(note)}</td></tr>`).join("")}</tbody></table></div></div>
-    <div class="panel"><h2>${esc(d.equivalence.title)}</h2><div class="scroll"><table>
-      <thead><tr><th>${esc(d.equivalence.aws)}</th><th>${esc(d.equivalence.azure)}</th><th>${esc(d.equivalence.note)}</th></tr></thead>
-      <tbody>${d.equivalence.rows.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>
-    <div class="panel"><h2>${esc(d.migration.title)}</h2><div class="note">${esc(d.migration.note)}</div><div class="scroll"><table>
-      <thead><tr><th>${esc(d.migration.step)}</th><th>${esc(d.migration.what)}</th><th>${esc(d.migration.done)}</th></tr></thead>
-      <tbody>${d.migration.steps.map(([step, what, done]) => `<tr><th scope="row">${esc(step)}</th><td>${esc(what)}</td><td>${esc(done)}</td></tr>`).join("")}</tbody></table></div></div>
-    <div class="panel"><h2>${esc(t("ui.docs_adrs"))}</h2><div class="scroll"><table>
-      <thead><tr><th>${esc(t("ui.decision"))}</th><th>${esc(t("ui.why"))}</th></tr></thead>
-      <tbody>${d.adrs.map(([title, why]) => `<tr><th scope="row">${esc(title)}</th><td>${esc(why)}</td></tr>`).join("")}</tbody></table></div></div>
-    <div class="panel"><h2>${esc(t("ui.docs_lessons"))}</h2><ul>${d.lessons.map((l) => `<li>${esc(l)}</li>`).join("")}</ul></div>`;
+  // Topics with their own data shape; everything else is generic blocks.
+  const special = {
+    azure: () => table([d.equivalence.aws, d.equivalence.azure, d.equivalence.note], escRows(d.equivalence.rows)),
+    migration: () => `<div class="note">${esc(d.migration.note)}</div>` + table([d.migration.step, d.migration.what, d.migration.done], escRows(d.migration.steps)),
+    validation: () => table([t("ui.docs_item"), t("ui.docs_level"), t("ui.docs_note")],
+      d.validation.map(([item, lvl, note]) => [esc(item), pill(level[lvl], t("ui.levels." + lvl)), esc(note)])),
+    decisions: () => table([t("ui.decision"), t("ui.why")], escRows(d.adrs)),
+    lessons: () => `<ul>${d.lessons.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>`,
+  };
+  view.innerHTML = `<div class="wiki">
+    <nav class="panel" aria-label="${esc(t("ui.wiki_topics"))}"><h3>${esc(t("ui.wiki_topics"))}</h3>
+      ${WIKI.map((id) => `<button type="button" data-topic="${id}" aria-current="${id === topic}">${esc(d.topics[id])}</button>`).join("")}</nav>
+    <article class="panel"><h2>${esc(d.topics[topic])}</h2>${blocks(d.wiki[topic])}${special[topic] ? special[topic]() : ""}</article></div>`;
 }
 
 // ---------- events ----------
@@ -278,9 +295,17 @@ document.addEventListener("click", (event) => {
   else if (d.run === "destroy") startJob("/destroy");
   else if (d.approve) api(`/jobs/${state.job.id}/approval`, "POST", { approve: d.approve === "true" });
   else if (d.stage) { state.stage = d.stage; render(); }
+  else if (d.topic) { state.topic = d.topic; location.hash = "wiki/" + d.topic; render(); }
   else if (d.inject) startJob(`/scenarios/${d.inject}/inject`, null, render);
   else if (d.fix) startJob(`/scenarios/${d.fix}/fix`, null, render);
 });
 
+// A link such as http://localhost:8080/#wiki/pipeline opens that wiki topic directly.
+const fromHash = () => {
+  const [, topic] = location.hash.match(/^#wiki\/([\w-]+)$/) || [];
+  if (topic) { state.tab = "docs"; state.topic = topic; }
+};
+fromHash();
+window.addEventListener("hashchange", () => { fromHash(); setLang(state.lang); });
 setLang(state.lang).then(refreshStatus);
 setInterval(refreshStatus, 5000);
