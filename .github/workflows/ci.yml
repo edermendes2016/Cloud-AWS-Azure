@@ -1,0 +1,54 @@
+name: ci
+
+# Every gate runs inside the same container image used locally (`make up`),
+# against the emulator: no cloud credentials are needed.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      INFRACOST_API_KEY: ${{ secrets.INFRACOST_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start emulator and lab
+        run: make up
+      - name: fmt, validate, tflint, gitleaks, plan, checkov, policy, cost
+        run: make ci
+      - name: Export the plan
+        if: always()
+        run: docker compose cp lab:/tmp/lab/plan.json plan.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tfplan-json
+          path: plan.json
+          if-no-files-found: ignore
+      # Optional: real prices from Infracost when the repository has the API key secret.
+      - uses: infracost/actions/setup@v3
+        if: env.INFRACOST_API_KEY != ''
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+      - name: Infracost breakdown
+        if: env.INFRACOST_API_KEY != ''
+        run: infracost breakdown --path plan.json
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start emulator and lab
+        run: make up
+      - name: Apply, inject the seven failures, destroy, orphan-check
+        run: make test
+      - name: Lab logs
+        if: failure()
+        run: docker compose logs --no-color | tail -n 200
