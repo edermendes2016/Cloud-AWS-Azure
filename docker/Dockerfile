@@ -29,8 +29,8 @@ COPY --from=tflint /usr/local/bin/tflint /usr/local/bin/tflint
 COPY --from=gitleaks /usr/bin/gitleaks /usr/local/bin/gitleaks
 
 WORKDIR /lab
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.pip .
+RUN pip install --no-cache-dir -r requirements.pip
 
 RUN useradd --create-home lab
 COPY --chown=lab:lab . .
