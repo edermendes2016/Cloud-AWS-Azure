@@ -268,6 +268,11 @@
         "terraform validate + Checkov only: no account, never planned or applied"
       ],
       [
+        "Kubernetes demonstration manifests (deployment, network policies, autoscaler)",
+        "plan",
+        "Checkov only: not applied to any cluster, not EKS or AKS"
+      ],
+      [
         "tflint",
         "local",
         "Bundled terraform ruleset, verified in the CI run"
@@ -377,6 +382,55 @@
           "Default tags on the provider",
           "Tags passed to every resource",
           "azurerm has no default_tags, so the tags map is a module input."
+        ]
+      ]
+    },
+    "migration": {
+      "title": "On-premises to cloud migration runbook",
+      "note": "A written procedure for moving an application and its PostgreSQL database into the network built by these modules. It has not been executed: the emulator runs no database engine, so there is nothing to restore into.",
+      "step": "Step",
+      "what": "What to do",
+      "done": "Done when",
+      "steps": [
+        [
+          "1. Inventory",
+          "List servers, databases, versions, sizes, scheduled jobs, certificates and who owns each one.",
+          "Every item has an owner and a target (move, replace or retire)."
+        ],
+        [
+          "2. Dependencies",
+          "Map who calls whom: ports, DNS names, fixed IPs, file shares, outbound integrations.",
+          "Each flow is a rule you can write in a security group, and nothing depends on an IP that will change."
+        ],
+        [
+          "3. Strategy",
+          "Choose per component: rehost (same thing on a VM), replatform (database to RDS) or refactor. Default to the smallest change that removes the on-premises dependency.",
+          "The choice and its reason are written down for every component."
+        ],
+        [
+          "4. Landing zone",
+          "Create network, database and monitoring with the pipeline, in a non-production environment first. Connect on-premises through VPN or Direct Connect.",
+          "Pipeline is green, the route and security group gates pass, and a test host on-premises reaches the database port."
+        ],
+        [
+          "5. Data copy",
+          "Initial load with pg_dump and pg_restore, or AWS DMS with change data capture when the allowed downtime is short. Rehearse at least once with production-sized data.",
+          "Row counts and checksums match, and the rehearsal time fits inside the window."
+        ],
+        [
+          "6. Cutover",
+          "Lower the DNS TTL days before. In the window: stop writes, let replication catch up, switch the connection string or DNS, start the application.",
+          "The application serves traffic from the cloud and the alarms stay quiet."
+        ],
+        [
+          "7. Validation",
+          "Run smoke tests and business checks, compare error rate and latency with the baseline, confirm backups and alarms are active.",
+          "The owner signs off inside the window."
+        ],
+        [
+          "8. Rollback",
+          "Decide before the window what triggers a rollback and until when it is possible. Keep the old database read-only and untouched until the decision point passes.",
+          "Either the sign-off is given or DNS points back, with no data written on only one side."
         ]
       ]
     }

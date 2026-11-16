@@ -268,6 +268,11 @@
         "Só terraform validate + Checkov: sem conta, nunca planejado nem aplicado"
       ],
       [
+        "Manifests Kubernetes de demonstração (deployment, network policies, autoscaler)",
+        "plan",
+        "Só Checkov: não aplicados em nenhum cluster, não é EKS nem AKS"
+      ],
+      [
         "tflint",
         "local",
         "Ruleset terraform embutido, verificado na execução do CI"
@@ -377,6 +382,55 @@
           "Default tags no provider",
           "Tags passadas a cada recurso",
           "O azurerm não tem default_tags, então o mapa de tags é entrada do módulo."
+        ]
+      ]
+    },
+    "migration": {
+      "title": "Runbook de migração on-premises para a nuvem",
+      "note": "Um procedimento escrito para levar uma aplicação e seu banco PostgreSQL para a rede criada por estes módulos. Não foi executado: o emulador não roda motor de banco, então não há onde restaurar.",
+      "step": "Etapa",
+      "what": "O que fazer",
+      "done": "Pronto quando",
+      "steps": [
+        [
+          "1. Inventário",
+          "Listar servidores, bancos, versões, tamanhos, jobs agendados, certificados e o dono de cada um.",
+          "Todo item tem dono e destino (mover, substituir ou aposentar)."
+        ],
+        [
+          "2. Dependências",
+          "Mapear quem chama quem: portas, nomes DNS, IPs fixos, compartilhamentos de arquivo, integrações de saída.",
+          "Cada fluxo vira uma regra que cabe em um security group, e nada depende de um IP que vai mudar."
+        ],
+        [
+          "3. Estratégia",
+          "Escolher por componente: rehost (o mesmo em VM), replatform (banco para RDS) ou refactor. O padrão é a menor mudança que elimina a dependência do on-premises.",
+          "A escolha e o motivo estão registrados para cada componente."
+        ],
+        [
+          "4. Landing zone",
+          "Criar rede, banco e monitoramento pelo pipeline, primeiro em ambiente não produtivo. Conectar o on-premises por VPN ou Direct Connect.",
+          "Pipeline verde, gates de rota e security group passando, e um host de teste no on-premises alcança a porta do banco."
+        ],
+        [
+          "5. Cópia dos dados",
+          "Carga inicial com pg_dump e pg_restore, ou AWS DMS com captura de mudanças quando a indisponibilidade permitida é curta. Ensaiar ao menos uma vez com volume de produção.",
+          "Contagens de linhas e checksums batem, e o tempo do ensaio cabe na janela."
+        ],
+        [
+          "6. Cutover",
+          "Baixar o TTL do DNS dias antes. Na janela: parar escritas, deixar a replicação alcançar, trocar a string de conexão ou o DNS, subir a aplicação.",
+          "A aplicação atende a partir da nuvem e os alarmes ficam quietos."
+        ],
+        [
+          "7. Validação",
+          "Rodar smoke tests e verificações de negócio, comparar taxa de erro e latência com a linha de base, confirmar backups e alarmes ativos.",
+          "O dono aprova dentro da janela."
+        ],
+        [
+          "8. Rollback",
+          "Decidir antes da janela o que dispara o rollback e até quando ele é possível. Manter o banco antigo somente leitura e intocado até passar o ponto de decisão.",
+          "Ou a aprovação é dada ou o DNS volta, sem dado gravado em um lado só."
         ]
       ]
     }

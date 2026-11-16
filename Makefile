@@ -6,7 +6,7 @@ SHELL := /bin/bash
 .SHELLFLAGS := -euo pipefail -c
 .DEFAULT_GOAL := help
 
-PIPELINE := fmt validate lint secrets plan scan scan-azure policy cost apply drift destroy orphan-check unlock ci test bootstrap init
+PIPELINE := fmt validate lint secrets plan scan scan-azure scan-k8s policy cost apply drift destroy orphan-check unlock ci test bootstrap init
 
 ifeq ($(IN_LAB),)
 
@@ -86,6 +86,9 @@ scan-azure: ## Checkov on the Azure code (static: there is no Azure account to p
 	checkov -d modules/azure -d envs/azure-example --framework terraform --config-file .checkov.yaml \
 	  --quiet --compact --skip-download
 
+scan-k8s: ## Checkov on the Kubernetes demonstration manifests (not applied to any cluster)
+	checkov -d k8s --framework kubernetes --config-file .checkov.yaml --quiet --compact --skip-download
+
 policy: ## Route and tag rules on the plan
 	python scripts/plan_policy.py $(WORK)/plan.json
 
@@ -111,7 +114,7 @@ orphan-check: ## List anything left outside the Terraform state
 unlock: ## Release a stale state lock: make unlock ID=<lock id>
 	$(TF) force-unlock -force $(ID)
 
-ci: fmt validate lint secrets plan scan scan-azure policy cost ## Every gate, in pipeline order
+ci: fmt validate lint secrets plan scan scan-azure scan-k8s policy cost ## Every gate, in pipeline order
 
 test: ## Unit + integration tests
 	python -m pytest -q tests
