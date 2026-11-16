@@ -1,0 +1,20 @@
+# make up -> http://localhost:8080
+# moto: open source AWS emulator (in memory: `make down` wipes everything).
+# lab:  API + web UI + Terraform and the gate tools.
+services:
+  moto:
+    image: motoserver/moto:5.2.5
+
+  lab:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    environment:
+      AWS_ENDPOINT_URL: http://moto:5000
+      # Fake by design: the emulator accepts any credentials.
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      - moto

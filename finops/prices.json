@@ -1,0 +1,16 @@
+{
+  "_note": "Reference on-demand list prices, us-east-1, USD. Snapshot for study purposes: not a quote, verify on the AWS pricing pages. Data transfer, log ingestion and Secrets Manager are not included.",
+  "hours_per_month": 730,
+  "nat_gateway_hour": 0.045,
+  "public_ipv4_hour": 0.005,
+  "rds_postgres_hour": {
+    "db.t3.micro": 0.018,
+    "db.t3.small": 0.036,
+    "db.t3.medium": 0.072,
+    "db.r6g.large": 0.225,
+    "db.r6g.xlarge": 0.45
+  },
+  "rds_gp3_gb_month": 0.115,
+  "cloudwatch_alarm_month": 0.1,
+  "cloudwatch_dashboard_month": 3.0
+}

@@ -1,7 +1,6 @@
 # Documentation lives in the web UI; notes stay local only
 *.md
 *.txt
-!requirements.txt
 
 # Terraform
 .terraform/

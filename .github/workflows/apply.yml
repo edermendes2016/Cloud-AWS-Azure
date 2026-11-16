@@ -1,0 +1,37 @@
+name: apply
+
+# Manual run. The apply job uses a protected environment: configure required reviewers for
+# "lab-apply" in the repository settings and the job waits for an approval.
+#
+# Real AWS account: replace `make up` with OIDC (no static keys) and drop the emulator:
+#   permissions: { id-token: write, contents: read }
+#   - uses: aws-actions/configure-aws-credentials@v4
+#     with: { role-to-assume: arn:aws:iam::<account-id>:role/<role>, aws-region: us-east-1 }
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - run: make up
+      - run: make ci
+
+  apply:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: lab-apply
+    steps:
+      - uses: actions/checkout@v4
+      # The emulator lives only inside one job, so the plan is recreated here before the apply.
+      - run: make up
+      - run: make plan
+      - run: make apply
+      - name: A second plan must be empty
+        run: make drift

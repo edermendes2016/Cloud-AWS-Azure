@@ -1,0 +1,336 @@
+{
+  "ui": {
+    "tagline": "Terraform na AWS com gates de CI, FinOps e cenários de falha. Roda local em um emulador: sem conta de nuvem, sem custo.",
+    "tabs": {
+      "pipeline": "Pipeline",
+      "map": "Mapa da rede",
+      "lab": "Laboratório de falhas",
+      "compare": "Antes × depois",
+      "cards": "Cartões de cenário",
+      "finops": "FinOps",
+      "docs": "Docs"
+    },
+    "status": {
+      "setup": "Preparando",
+      "ready": "Pronto",
+      "busy": "Job em execução",
+      "offline": "API fora do ar"
+    },
+    "applied": "{n} recursos aplicados",
+    "run_pipeline": "Rodar pipeline (gates + apply)",
+    "run_gates": "Rodar só os gates",
+    "run_destroy": "Destroy + orphan-check",
+    "pipeline_intro": "Cada botão roda os mesmos alvos do make que o CI roda. O apply espera uma aprovação manual, como um environment protegido no GitHub Actions.",
+    "approval_title": "Aprovação necessária",
+    "approval_text": "Todos os gates passaram. Revise o log do plan acima e aprove ou rejeite o apply.",
+    "approve": "Aprovar apply",
+    "reject": "Rejeitar",
+    "no_job": "Nenhum job ainda. Rode o pipeline para aplicar a base.",
+    "job": "Job",
+    "total": "Total",
+    "seconds": "s",
+    "stage_status": {
+      "pending": "pendente",
+      "running": "rodando",
+      "passed": "passou",
+      "failed": "falhou",
+      "skipped": "pulado",
+      "waiting": "aguardando"
+    },
+    "job_status": {
+      "running": "rodando",
+      "waiting": "aguardando aprovação",
+      "passed": "passou",
+      "failed": "falhou",
+      "rejected": "rejeitado",
+      "detected": "falha detectada",
+      "missed": "falha NÃO detectada"
+    },
+    "not_applied": "Nada aplicado ainda. Rode o pipeline primeiro.",
+    "map_intro": "Desenhado a partir do terraform show -json (o state), mais as regras reais do security group lidas na API do emulador.",
+    "tier": "Camada",
+    "default_route": "rota padrão",
+    "none": "nenhuma",
+    "edge": "Borda",
+    "igw": "Internet gateway",
+    "nat": "NAT gateways",
+    "database": "Banco de dados",
+    "db_rules_code": "Entrada no código",
+    "db_rules_live": "Entrada real",
+    "not_in_code": "fora do código",
+    "public": "público",
+    "private": "privado",
+    "encrypted": "criptografado",
+    "alarms": "Alarmes",
+    "state_backend": "Backend do state",
+    "state_backend_text": "Bucket S3 (versionado, SSE) + tabela de lock no DynamoDB",
+    "repository": "Repositório",
+    "repository_text": "Varrido pelo gitleaks",
+    "outside_tf": "Fora do Terraform",
+    "orphans_n": "{n} recurso(s) órfão(s)",
+    "fault_active": "falha ativa",
+    "lab_intro": "Cada cenário injeta uma falha real e mostra qual controle a barra. Falhas de plan são bloqueadas antes de qualquer apply; falhas de runtime alteram o emulador por fora do Terraform.",
+    "kind": {
+      "plan": "no plan",
+      "runtime": "em runtime",
+      "repo": "repositório"
+    },
+    "control": "Controle",
+    "inject": "Injetar falha",
+    "fix": "Aplicar correção",
+    "detected_by": "Detectado por {control} em {s} s",
+    "fixed_in": "Corrigido e verificado em {s} s",
+    "show_log": "Saída",
+    "needs_apply": "Precisa da base aplicada.",
+    "compare_field": "Medição de campo (projeto real)",
+    "compare_manual": "Provisionamento manual",
+    "compare_manual_value": "2–3 horas",
+    "compare_pipeline": "Pipeline",
+    "compare_pipeline_value": "6–8 minutos",
+    "how_measured": "Como medi",
+    "compare_field_how": "TODO(author): descrever o método (o que foi cronometrado, início e fim, quantas execuções).",
+    "compare_lab": "Medido neste laboratório",
+    "compare_lab_how": "Segundos por etapa, cronometrados pela API do laboratório em volta de cada alvo do make. É o emulador na sua máquina, não a AWS: mostra onde o tempo vai, não prevê durações na nuvem.",
+    "compare_empty": "Nenhuma execução do pipeline ainda.",
+    "run": "Execução",
+    "result": "Resultado",
+    "cards_intro": "Um cartão por cenário, sempre nos mesmos seis campos.",
+    "card": {
+      "context": "Contexto",
+      "automated": "O que foi automatizado",
+      "pipeline": "Como funciona no pipeline",
+      "metrics": "Antes / depois",
+      "risks": "Riscos e controles",
+      "validated": "Onde foi validado"
+    },
+    "card_metric_live": "Neste laboratório: barrado por {control} em {s} s.",
+    "card_metric_none": "Neste laboratório: ainda não executado (injete no Laboratório de falhas).",
+    "card_metric_how": "Segundos da injeção até o controle falhar, cronometrados pela API do laboratório no emulador.",
+    "finops_intro": "Estimativa de quanto os recursos aplicados custariam na AWS. O laboratório em si não custa nada.",
+    "resource": "Recurso",
+    "detail": "Detalhe",
+    "monthly": "USD / mês",
+    "unknown": "desconhecido",
+    "budget": "Orçamento",
+    "of_budget": "{total} de {budget} USD / mês",
+    "tags_title": "Política de tags",
+    "tags_ok": "Todo recurso que aceita tags tem: {tags}.",
+    "orphans_title": "Recursos fora do state",
+    "orphans_ok": "Nenhum. Tudo que existe no emulador está no state do Terraform.",
+    "docs_validation": "O que foi validado, e como",
+    "docs_item": "Item",
+    "docs_level": "Nível",
+    "docs_note": "Observação",
+    "levels": {
+      "emulator": "Aplicado no emulador",
+      "plan": "Só plan / scan",
+      "local": "Roda localmente",
+      "not_run": "Ainda não executado",
+      "real": "Conta real"
+    },
+    "docs_adrs": "Decisões (ADRs curtos)",
+    "decision": "Decisão",
+    "why": "Por quê",
+    "docs_lessons": "Lições aprendidas e custos",
+    "docs_quickstart": "Início rápido"
+  },
+  "scenarios": {
+    "missing-route": {
+      "title": "Rota ausente",
+      "story": "O NAT gateway é desligado para economizar. A camada de aplicação perde a rota padrão e o acesso de saída, sem nenhum erro.",
+      "card": {
+        "context": "As sub-redes de aplicação só chegam à internet pelo NAT gateway. Remover o NAT remove também a rota 0.0.0.0/0, e nada falha até uma aplicação dar timeout.",
+        "automated": "Uma regra no plan: toda route table com tag Tier=public ou Tier=app precisa de rota padrão; Tier=data não pode ter.",
+        "pipeline": "make policy lê o JSON do plan logo após o terraform plan e falha a execução antes da etapa de aprovação.",
+        "before": "Antes: descoberto depois do apply, por uma aplicação que não alcança suas dependências.",
+        "risks": "A regra depende da tag Tier, então uma route table sem tag válida falha a regra em vez de ser ignorada.",
+        "validated": "Aplicado no emulador (moto). Não executado em conta AWS real."
+      }
+    },
+    "open-security-group": {
+      "title": "Security group aberto",
+      "story": "Uma regra temporária abre a porta do banco para 0.0.0.0/0 para alguém depurar de casa.",
+      "card": {
+        "context": "O security group do banco deve aceitar conexões só da camada de aplicação. A regra aberta é o atalho clássico que nunca é removido.",
+        "automated": "Uma política customizada do Checkov (CKV2_LAB_1) rejeita qualquer entrada a partir de 0.0.0.0/0, além dos checks nativos.",
+        "pipeline": "make scan roda o Checkov no plan resolvido, então o valor é verificado mesmo quando chega por variável.",
+        "before": "Antes: depende de um revisor notar um CIDR em um diff.",
+        "risks": "Os checks ignorados estão em .checkov.yaml, cada um com o motivo. Um novo skip aparece no code review.",
+        "validated": "Scan executado localmente no plan. Não executado em conta AWS real."
+      }
+    },
+    "costly-resource": {
+      "title": "Recurso caro esquecido",
+      "story": "Um teste de carga subiu o banco para db.r6g.xlarge Multi-AZ e ninguém voltou ao tamanho normal.",
+      "card": {
+        "context": "Classe da instância e Multi-AZ são mudanças de uma linha que multiplicam a fatura. Passam em todos os testes funcionais.",
+        "automated": "Uma estimativa offline por recurso a partir do plan, comparada a um orçamento mensal. No CI, o Infracost pode substituir a tabela de preços de referência.",
+        "pipeline": "make cost imprime a estimativa e falha quando o total passa do BUDGET (100 USD/mês no laboratório).",
+        "before": "Antes: descoberto na fatura, semanas depois.",
+        "risks": "Os preços são um retrato de referência rotulado (finops/prices.json), não uma cotação. Classes desconhecidas são sinalizadas, nunca contam como zero. Transferência de dados não é estimada.",
+        "validated": "Estimativa executada localmente no plan com preços de tabela de referência. O Infracost não foi executado."
+      }
+    },
+    "state-lock": {
+      "title": "Lock de state preso",
+      "story": "Um job do pipeline é cancelado no meio de um apply e não libera o lock. Toda execução seguinte fica bloqueada.",
+      "card": {
+        "context": "O lock no DynamoDB impede duas execuções de gravar o mesmo state. Um job morto deixa o lock para trás.",
+        "automated": "Todo plan e apply usa o backend remoto com lock e -lock-timeout=0s, então um lock preso falha rápido mostrando o ID e o dono.",
+        "pipeline": "A etapa de plan falha com 'Error acquiring the state lock'. Depois de confirmar que o dono morreu, make unlock ID=<id> libera.",
+        "before": "Antes (state local, sem lock): dois applies simultâneos podem corromper o state.",
+        "risks": "force-unlock em um lock ainda vivo causa exatamente a corrupção que o lock evita: confirme o dono antes. O laboratório simula o job morto gravando o item de lock diretamente.",
+        "validated": "Aplicado no emulador (moto S3 + DynamoDB). Não executado em conta AWS real."
+      }
+    },
+    "drift": {
+      "title": "Drift",
+      "story": "Alguém adiciona à mão uma regra de entrada no security group do banco, por fora do Terraform.",
+      "card": {
+        "context": "Mudanças manuais fazem a infraestrutura real divergir do código. O próximo apply pode revertê-las ou, pior, elas passam despercebidas.",
+        "automated": "terraform plan -detailed-exitcode como verificação de drift. As regras do security group são inline, então o Terraform é dono do conjunto inteiro e enxerga regras que não criou.",
+        "pipeline": "make drift falha com DRIFT DETECTED e mostra o diff. A correção é um plan + apply normal, que remove a regra manual.",
+        "before": "Antes: a regra é encontrada em uma auditoria, ou nunca.",
+        "risks": "Só atributos gerenciados pelo Terraform são comparados. Com regras em recursos separados, uma regra criada à mão não seria detectada.",
+        "validated": "Aplicado no emulador (moto). Não executado em conta AWS real."
+      }
+    },
+    "dirty-destroy": {
+      "title": "Destroy sujo",
+      "story": "Um security group e uma interface de rede são criados à mão dentro da VPC. Não estão no state.",
+      "card": {
+        "context": "Na AWS, recursos criados fora do Terraform bloqueiam a exclusão da VPC com DependencyViolation, ou sobrevivem ao destroy e continuam custando.",
+        "automated": "orphan-check lista tudo que existe na conta e não está no state do Terraform, e se tem a tag ManagedBy.",
+        "pipeline": "make orphan-check roda depois de todo destroy e falha se sobrar algo. Também pode rodar agendado.",
+        "before": "Antes: as sobras são encontradas olhando o console região por região.",
+        "risks": "A verificação cobre os tipos de recurso que este laboratório cria, não todos os serviços da AWS. O emulador não aplica DependencyViolation, então o laboratório mostra a detecção, não o destroy falhando.",
+        "validated": "Aplicado no emulador (moto). Não executado em conta AWS real."
+      }
+    },
+    "secret-leak": {
+      "title": "Vazamento de segredo",
+      "story": "Um arquivo deploy.env com uma chave de acesso da AWS está prestes a ser commitado.",
+      "card": {
+        "context": "Uma chave enviada a um repositório deve ser tratada como comprometida, mesmo que o commit seja removido depois.",
+        "automated": "O gitleaks varre a árvore de trabalho no pipeline. O laboratório gera uma chave falsa aleatória em tempo de execução, então o repositório nunca contém uma.",
+        "pipeline": "make secrets falha com 'leaks found' e mostra arquivo e linha, com o valor mascarado.",
+        "before": "Antes: a chave é encontrada por quem varre repositórios públicos primeiro.",
+        "risks": "A detecção é por padrão: formatos incomuns de segredo exigem regras próprias. Apagar o arquivo não basta, a chave precisa ser revogada.",
+        "validated": "Scan executado localmente. Na configuração de nuvem documentada o pipeline usa roles OIDC, então não existe chave de longa duração para vazar."
+      }
+    }
+  },
+  "docs": {
+    "quickstart": [
+      "git clone <este repositório> && cd <pasta>",
+      "make up",
+      "abra http://localhost:8080"
+    ],
+    "validation": [
+      [
+        "VPC, sub-redes, rotas, NAT gateway, flow logs",
+        "emulator",
+        "moto 5.2.5"
+      ],
+      [
+        "Instância RDS, subnet group, security group",
+        "emulator",
+        "Mock de API: nenhum motor de banco roda"
+      ],
+      [
+        "Valores do parameter group do RDS (rds.force_ssl) e Performance Insights",
+        "plan",
+        "O emulador não os mantém"
+      ],
+      [
+        "Alarmes, dashboard e log groups do CloudWatch",
+        "emulator",
+        "Os alarmes nunca disparam: o emulador não tem métricas"
+      ],
+      [
+        "Remote state no S3 (versionamento, SSE) com lock no DynamoDB",
+        "emulator",
+        ""
+      ],
+      [
+        "Política de bucket somente TLS no bucket do state",
+        "plan",
+        "O emulador fala HTTP puro"
+      ],
+      [
+        "Checkov, política de rotas e tags, gate de custo, gitleaks",
+        "local",
+        "Rodam sobre o plan dentro do container do laboratório"
+      ],
+      [
+        "tflint",
+        "local",
+        "Ruleset terraform embutido, verificado na execução do CI"
+      ],
+      [
+        "Infracost",
+        "not_run",
+        "Precisa de chave de API; o laboratório usa a tabela de preços offline"
+      ],
+      [
+        "GitHub Actions: workflow ci (gates e testes de ponta a ponta)",
+        "emulator",
+        "Verde em runner hospedado pelo GitHub"
+      ],
+      [
+        "GitHub Actions: workflows apply e destroy",
+        "not_run",
+        "Workflows manuais, ainda não disparados"
+      ],
+      [
+        "Qualquer coisa em conta AWS real",
+        "not_run",
+        "Nada foi executado em conta real"
+      ]
+    ],
+    "adrs": [
+      [
+        "Emulador: moto server",
+        "O LocalStack agora exige conta e token de autenticação. O moto é open source, não precisa de conta e cobre todos os serviços usados aqui."
+      ],
+      [
+        "Provider AWS fixado em 6.20.0",
+        "Versões mais novas do provider (6.40 e 6.73 foram testadas) usam um protocolo do CloudWatch que o moto 5.2.5 não responde. A 6.20.0 é a mais nova verificada funcionando."
+      ],
+      [
+        "Gates rodam sobre o JSON do plan, não sobre o HCL cru",
+        "No plan as variáveis já estão resolvidas, então um valor ruim passado por tfvars é pego. Um único arquivo alimenta o Checkov, a política e o gate de custo."
+      ],
+      [
+        "Um Makefile para pessoas, CI e a tela",
+        "O que a tela mostra é exatamente o que o CI roda. Não existe uma segunda implementação para divergir."
+      ],
+      [
+        "Rotas em recursos separados, regras de security group inline",
+        "Um bloco de rota inline removido é ignorado pelo provider. Regras inline de security group dão ao Terraform posse exclusiva, e é isso que detecta regras manuais."
+      ],
+      [
+        "Lock no DynamoDB mantido, embora depreciado",
+        "O Terraform agora prefere use_lockfile (lock nativo no S3). A tabela foi mantida porque muitos ambientes existentes ainda a usam e ela torna visível o cenário de lock preso. A migração é uma linha no backend."
+      ],
+      [
+        "Provider embutido na imagem",
+        "Um mirror em disco na imagem faz o make up não precisar do registry em tempo de execução, e a versão do provider não pode flutuar."
+      ],
+      [
+        "Tela em HTML e JavaScript puros, docs dentro da tela",
+        "Sem etapa de build, sem CDN, funciona offline. Fácil de ler de cima a baixo."
+      ]
+    ],
+    "lessons": [
+      "Uma política de bucket somente TLS tranca um emulador HTTP para fora do próprio bucket de state. A política é validada só por plan e scan.",
+      "Apagar um bloco de rota inline não apaga a rota. A primeira versão do cenário de rota ausente passava no gate por isso.",
+      "O emulador descarta os valores de parâmetros do RDS e o Performance Insights, o que aparece como drift permanente. O laboratório não passa nenhum ali e mantém os padrões seguros para contas reais.",
+      "Criar a instância RDS leva cerca de 80 segundos mesmo no emulador, porque o provider espera e consulta. Medido neste laboratório.",
+      "O Checkov tenta baixar guidelines a cada execução. --skip-download o mantém offline.",
+      "Depois de um destroy o emulador mantém a interface de rede do NAT gateway em uma VPC que não existe mais. O orphan-check ignora interfaces sem VPC e documenta o motivo.",
+      "O arquivo de lock de dependências não é commitado: os hashes de todas as plataformas não podem ser gerados offline. Em troca, a versão do provider é fixada exatamente.",
+      "Custo: o laboratório não custa nada. Pelos preços de tabela de referência, a base custaria cerca de 55 USD/mês na AWS, e o NAT gateway é a maior linha."
+    ]
+  }
+}

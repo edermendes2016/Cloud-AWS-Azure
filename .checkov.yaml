@@ -1,0 +1,9 @@
+# Checkov configuration. Every skipped check carries its reason.
+skip-check:
+  - CKV_AWS_158 # Log groups use AWS-managed encryption; a customer KMS key is a paid, per-environment decision
+  - CKV_AWS_338 # 30-day log retention is a deliberate cost choice for a lab (the check wants >= 1 year)
+  - CKV_AWS_157 # Multi-AZ is a module variable: off in the lab, the cost gate shows what turning it on costs
+  - CKV_AWS_293 # Deletion protection is a module variable (default true); off here because the lab must destroy cleanly
+  - CKV_AWS_118 # Enhanced monitoring adds paid CloudWatch log ingestion; out of scope for the lab
+  - CKV2_AWS_69 # rds.force_ssl is the module default; the emulator cannot store parameter values, so the lab passes none
+  - CKV_AWS_353 # Performance Insights is the module default; the emulator does not keep the flag, so the lab turns it off

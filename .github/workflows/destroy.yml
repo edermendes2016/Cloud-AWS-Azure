@@ -1,0 +1,21 @@
+name: destroy
+
+# Manual run: proves that a destroy leaves nothing behind.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  destroy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - run: make up
+      - run: make plan
+      - run: make apply
+      - run: make destroy
+      - name: Nothing may exist outside the Terraform state
+        run: make orphan-check
