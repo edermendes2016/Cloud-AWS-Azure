@@ -1,0 +1,21 @@
+# Documentation lives in the web UI; notes stay local only
+*.md
+*.txt
+!requirements.txt
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+*.auto.tfvars
+terraform.tfvars
+
+# Local
+.env
+__pycache__/
+.pytest_cache/
+*.pyc
+.DS_Store
+.terraform.lock.hcl
