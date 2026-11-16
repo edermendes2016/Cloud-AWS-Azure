@@ -257,6 +257,9 @@ async function renderDocs() {
     <div class="panel"><h2>${esc(d.equivalence.title)}</h2><div class="scroll"><table>
       <thead><tr><th>${esc(d.equivalence.aws)}</th><th>${esc(d.equivalence.azure)}</th><th>${esc(d.equivalence.note)}</th></tr></thead>
       <tbody>${d.equivalence.rows.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>
+    <div class="panel"><h2>${esc(d.migration.title)}</h2><div class="note">${esc(d.migration.note)}</div><div class="scroll"><table>
+      <thead><tr><th>${esc(d.migration.step)}</th><th>${esc(d.migration.what)}</th><th>${esc(d.migration.done)}</th></tr></thead>
+      <tbody>${d.migration.steps.map(([step, what, done]) => `<tr><th scope="row">${esc(step)}</th><td>${esc(what)}</td><td>${esc(done)}</td></tr>`).join("")}</tbody></table></div></div>
     <div class="panel"><h2>${esc(t("ui.docs_adrs"))}</h2><div class="scroll"><table>
       <thead><tr><th>${esc(t("ui.decision"))}</th><th>${esc(t("ui.why"))}</th></tr></thead>
       <tbody>${d.adrs.map(([title, why]) => `<tr><th scope="row">${esc(title)}</th><td>${esc(why)}</td></tr>`).join("")}</tbody></table></div></div>
